@@ -1,0 +1,13 @@
+{{> head}}
+{{> nav}}
+<main class="mx-auto w-full max-w-xl flex-1 px-4 py-16 text-center sm:px-6">
+  <div class="card p-8">
+    <h1 class="text-2xl font-extrabold">{{heading}}</h1>
+    <p class="mt-3 text-ink-muted">{{message}}</p>
+    <div class="mt-6 flex justify-center gap-3">
+      <a href="javascript:location.reload()" class="btn-outline">Reload</a>
+      <a href="/" class="btn-primary">Go to start</a>
+    </div>
+  </div>
+</main>
+{{> footer}}

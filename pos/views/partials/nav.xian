@@ -1,0 +1,31 @@
+{{!-- POS top bar (pos only; not part of shared/views/partials) --}}
+<header class="border-b border-line bg-white print:hidden">
+  <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3 sm:px-6">
+    <a href="/" class="flex items-center gap-2 text-lg font-extrabold text-ink">
+      <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-white">MF</span>
+      <span>MindaFresh <span class="text-brand">POS</span></span>
+    </a>
+    {{#if currentUser}}
+    <nav class="flex flex-1 flex-wrap items-center gap-1 text-[15px] font-semibold">
+      <a href="/dashboard" class="rounded-lg px-3 py-2 {{#if (startsWith currentPath '/dashboard')}}bg-peach text-ink{{else}}text-ink-muted hover:bg-peach-soft{{/if}}">Dashboard</a>
+      {{#if canSell}}
+      <a href="/pos" class="rounded-lg px-3 py-2 {{#if (eq currentPath '/pos')}}bg-peach text-ink{{else}}text-ink-muted hover:bg-peach-soft{{/if}}">Cashier</a>
+      <a href="/sales" class="rounded-lg px-3 py-2 {{#if (startsWith currentPath '/sales')}}bg-peach text-ink{{else}}text-ink-muted hover:bg-peach-soft{{/if}}">Sales</a>
+      {{/if}}
+      {{#if canStock}}
+      <a href="/inventory" class="rounded-lg px-3 py-2 {{#if (startsWith currentPath '/inventory')}}bg-peach text-ink{{else}}text-ink-muted hover:bg-peach-soft{{/if}}">Stock</a>
+      <a href="/purchases" class="rounded-lg px-3 py-2 {{#if (startsWith currentPath '/purchases')}}bg-peach text-ink{{else}}text-ink-muted hover:bg-peach-soft{{/if}}">Purchase orders</a>
+      <a href="/suppliers" class="rounded-lg px-3 py-2 {{#if (startsWith currentPath '/suppliers')}}bg-peach text-ink{{else}}text-ink-muted hover:bg-peach-soft{{/if}}">Suppliers</a>
+      {{/if}}
+      {{#if isAdmin}}
+      <a href="/products" class="rounded-lg px-3 py-2 {{#if (startsWith currentPath '/products')}}bg-peach text-ink{{else}}text-ink-muted hover:bg-peach-soft{{/if}}">Products</a>
+      <a href="/categories" class="rounded-lg px-3 py-2 {{#if (startsWith currentPath '/categories')}}bg-peach text-ink{{else}}text-ink-muted hover:bg-peach-soft{{/if}}">Categories</a>
+      {{/if}}
+    </nav>
+    <div class="flex items-center gap-3 text-sm">
+      <span class="text-right leading-tight"><strong class="block">{{currentUser.full_name}}</strong><span class="text-ink-muted">{{currentUser.employee_code}} · {{label currentUser.role}}</span></span>
+      <form action="/logout" method="POST"><button class="btn-outline min-h-[38px] px-3 text-sm">Log out</button></form>
+    </div>
+    {{/if}}
+  </div>
+</header>

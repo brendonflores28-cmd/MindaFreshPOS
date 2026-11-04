@@ -1,0 +1,32 @@
+{{> head}}
+{{> nav}}
+<main class="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6">
+  {{> flash}}
+  <a href="/products" class="text-sm font-bold text-brand">← Products</a>
+  <h1 class="mt-2 text-2xl font-extrabold">{{#if isNew}}New product{{else}}Edit {{product.product_code}}{{/if}}</h1>
+  <form action="{{#if isNew}}/products{{else}}/products/{{product.id}}{{/if}}" method="POST" class="card mt-4 grid gap-4 p-6 sm:grid-cols-2">
+    <div class="sm:col-span-2"><label class="label" for="name">Name</label><input id="name" name="name" value="{{product.name}}" class="field mt-1" required maxlength="150"></div>
+    <div><label class="label" for="category_id">Category</label>
+      <select id="category_id" name="category_id" class="field mt-1" required>
+        <option value="">Choose…</option>
+        {{#each categories}}<option value="{{id}}" {{#if (eq id ../product.category_id)}}selected{{/if}}>{{name}}</option>{{/each}}
+      </select></div>
+    <div><label class="label" for="unit">Unit</label>
+      <select id="unit" name="unit" class="field mt-1">
+        {{#each units}}<option value="{{this}}" {{#if (eq this ../product.unit)}}selected{{/if}}>{{this}}</option>{{/each}}
+      </select></div>
+    <div><label class="label" for="cost_price">Cost price (₱)</label><input id="cost_price" name="cost_price" type="number" min="0" step="0.01" value="{{product.cost_price}}" class="field mt-1" required>
+      {{#unless isNew}}<p class="mt-1 text-xs text-ink-muted">Updated automatically (weighted average) when a purchase order is received.</p>{{/unless}}</div>
+    <div><label class="label" for="selling_price">Selling price (₱)</label><input id="selling_price" name="selling_price" type="number" min="0" step="0.01" value="{{product.selling_price}}" class="field mt-1" required></div>
+    <div><label class="label" for="reorder_level">Reorder level</label><input id="reorder_level" name="reorder_level" type="number" min="0" step="1" value="{{product.reorder_level}}" class="field mt-1" required></div>
+    {{#if isNew}}
+    <div><label class="label" for="opening_stock">Opening stock</label><input id="opening_stock" name="opening_stock" type="number" min="0" step="1" value="{{#if product.opening_stock}}{{product.opening_stock}}{{else}}0{{/if}}" class="field mt-1">
+      <p class="mt-1 text-xs text-ink-muted">Saved as an “opening” stock movement.</p></div>
+    {{/if}}
+    <div class="sm:col-span-2"><label class="label" for="description">Description</label><textarea id="description" name="description" rows="3" class="field mt-1 py-2">{{product.description}}</textarea></div>
+    <div class="sm:col-span-2"><label class="label" for="image_url">Image URL (optional)</label><input id="image_url" name="image_url" value="{{product.image_url}}" class="field mt-1" maxlength="255" placeholder="/images/calamansi.jpg"></div>
+    <label class="flex items-center gap-2 font-semibold sm:col-span-2"><input type="checkbox" name="is_online" value="1" class="h-5 w-5 accent-brand" {{#if product.is_online}}checked{{/if}}> Show in the Online Shop</label>
+    <div class="flex gap-2 sm:col-span-2"><button class="btn-primary">Save product</button><a href="/products" class="btn-outline">Cancel</a></div>
+  </form>
+</main>
+{{> footer}}

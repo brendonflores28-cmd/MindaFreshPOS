@@ -1,0 +1,175 @@
+{{> head}}
+{{> nav}}
+<main class="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6">
+  {{> flash}}
+  <div class="grid gap-6 lg:grid-cols-[1fr_380px]">
+    <!-- Products -->
+    <section>
+      <div class="flex flex-wrap items-center gap-3">
+        <h1 class="mr-auto text-2xl font-extrabold">Cashier</h1>
+        <input id="search" class="field max-w-xs" placeholder="Search name or code (Enter adds)" autocomplete="off" autofocus>
+      </div>
+      <div id="cats" class="mt-3 flex flex-wrap gap-2">
+        <button type="button" data-cat="" class="chip border-brand bg-brand text-white">All</button>
+        {{#each categories}}<button type="button" data-cat="{{this}}" class="chip border-line-strong bg-white text-ink">{{this}}</button>{{/each}}
+      </div>
+      <div id="grid" class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4"></div>
+      <p id="empty" class="mt-6 hidden text-center text-ink-muted">No product matches.</p>
+    </section>
+
+    <!-- Cart -->
+    <aside class="card flex h-fit flex-col p-5 lg:sticky lg:top-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-extrabold">Current sale</h2>
+        <button type="button" id="clear" class="text-sm font-bold text-danger">Clear</button>
+      </div>
+      <ul id="cart" class="mt-3 max-h-[40vh] divide-y divide-line overflow-y-auto"></ul>
+      <p id="cartEmpty" class="py-8 text-center text-ink-muted">Tap a product to add it.</p>
+
+      <form id="checkoutForm" action="/pos/checkout" method="POST" class="mt-4 space-y-3 border-t border-line pt-4">
+        <input type="hidden" name="cart" id="cartField">
+        <div class="flex justify-between text-[15px]"><span>Subtotal</span><strong id="subtotal">₱0.00</strong></div>
+        <div class="flex items-center justify-between gap-3">
+          <label for="discount" class="label">Discount (₱)</label>
+          <input id="discount" name="discount" type="number" min="0" step="0.01" value="0" class="field max-w-[140px] text-right">
+        </div>
+        <div class="flex justify-between text-xl font-extrabold"><span>Total</span><span id="total">₱0.00</span></div>
+
+        <div class="grid grid-cols-3 gap-2" id="methods">
+          <label class="chip cursor-pointer justify-center border-line-strong has-[:checked]:border-brand has-[:checked]:bg-peach"><input type="radio" name="payment_method" value="cash" class="sr-only" checked>Cash</label>
+          <label class="chip cursor-pointer justify-center border-line-strong has-[:checked]:border-brand has-[:checked]:bg-peach"><input type="radio" name="payment_method" value="gcash" class="sr-only">GCash</label>
+          <label class="chip cursor-pointer justify-center border-line-strong has-[:checked]:border-brand has-[:checked]:bg-peach"><input type="radio" name="payment_method" value="card" class="sr-only">Card</label>
+        </div>
+
+        <div id="cashBox" class="space-y-2">
+          <div class="flex items-center justify-between gap-3">
+            <label for="amountPaid" class="label">Cash received (₱)</label>
+            <input id="amountPaid" name="amount_paid" type="number" min="0" step="0.01" class="field max-w-[140px] text-right">
+          </div>
+          <div id="quick" class="flex flex-wrap justify-end gap-2"></div>
+          <div class="flex justify-between text-[15px]"><span>Change</span><strong id="change">₱0.00</strong></div>
+        </div>
+
+        <p id="warn" class="hidden rounded-xl bg-danger-bg px-3 py-2 text-sm font-semibold text-danger"></p>
+        <button id="payBtn" class="btn-primary w-full text-lg" disabled>Complete sale</button>
+      </form>
+    </aside>
+  </div>
+</main>
+
+<script>
+  const PRODUCTS = {{{json products}}};
+  const fmt = (n) => "₱" + Number(n).toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const r2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+  const $ = (id) => document.getElementById(id);
+  const cart = new Map(); // product id -> quantity
+  let cat = "";
+
+  function visible() {
+    const q = $("search").value.trim().toLowerCase();
+    return PRODUCTS.filter((p) => (!cat || p.category === cat) &&
+      (!q || p.name.toLowerCase().includes(q) || (p.code || "").toLowerCase().includes(q)));
+  }
+
+  function renderGrid() {
+    const list = visible();
+    $("grid").innerHTML = list.map((p) => {
+      const left = p.stock - (cart.get(p.id) || 0);
+      const out = left <= 0;
+      return `<button type="button" data-id="${p.id}" ${out ? "disabled" : ""}
+        class="card flex flex-col items-start gap-1 p-3 text-left transition-colors ${out ? "cursor-not-allowed opacity-50" : "hover:border-brand hover:bg-peach-soft"}">
+        <span class="text-xs font-bold text-ink-muted">${p.code}</span>
+        <span class="font-bold leading-snug">${p.name.replace(/</g, "&lt;")}</span>
+        <span class="mt-auto text-lg font-extrabold text-brand">${fmt(p.price)}</span>
+        <span class="text-xs ${left <= 5 ? "font-bold text-danger" : "text-ink-muted"}">${out ? "Out of stock" : left + " " + p.unit + " left"}</span>
+      </button>`;
+    }).join("");
+    $("empty").classList.toggle("hidden", list.length > 0);
+  }
+
+  function add(id, n = 1) {
+    const p = PRODUCTS.find((x) => x.id === id);
+    if (!p) return;
+    const q = (cart.get(id) || 0) + n;
+    if (q <= 0) cart.delete(id);
+    else if (q > p.stock) return flashWarn(`Only ${p.stock} ${p.unit} of ${p.name} in stock.`);
+    else cart.set(id, q);
+    render();
+  }
+
+  function flashWarn(msg) {
+    $("warn").textContent = msg;
+    $("warn").classList.remove("hidden");
+    clearTimeout(flashWarn.t);
+    flashWarn.t = setTimeout(() => $("warn").classList.add("hidden"), 3000);
+  }
+
+  function totals() {
+    let subtotal = 0;
+    for (const [id, q] of cart) subtotal += PRODUCTS.find((p) => p.id === id).price * q;
+    subtotal = r2(subtotal);
+    const discount = Math.min(Math.max(r2($("discount").value || 0), 0), subtotal);
+    return { subtotal, total: r2(subtotal - discount) };
+  }
+
+  function render() {
+    $("cart").innerHTML = [...cart].map(([id, q]) => {
+      const p = PRODUCTS.find((x) => x.id === id);
+      return `<li class="flex items-center gap-2 py-2">
+        <div class="min-w-0 flex-1"><p class="truncate font-bold">${p.name.replace(/</g, "&lt;")}</p><p class="text-sm text-ink-muted">${fmt(p.price)} × ${q} = <strong class="text-ink">${fmt(p.price * q)}</strong></p></div>
+        <button type="button" data-dec="${id}" class="btn-outline min-h-[36px] w-9 px-0">−</button>
+        <span class="w-8 text-center font-bold">${q}</span>
+        <button type="button" data-inc="${id}" class="btn-outline min-h-[36px] w-9 px-0">+</button>
+      </li>`;
+    }).join("");
+    $("cartEmpty").classList.toggle("hidden", cart.size > 0);
+
+    const { subtotal, total } = totals();
+    $("subtotal").textContent = fmt(subtotal);
+    $("total").textContent = fmt(total);
+    const method = document.querySelector("input[name=payment_method]:checked").value;
+    const isCash = method === "cash";
+    $("cashBox").classList.toggle("hidden", !isCash);
+    const paid = r2($("amountPaid").value || 0);
+    $("change").textContent = fmt(Math.max(paid - total, 0));
+    $("quick").innerHTML = [total, 100, 200, 500, 1000].filter((v, i, a) => v > 0 && (i === 0 || v > total) && a.indexOf(v) === i)
+      .map((v) => `<button type="button" data-pay="${v}" class="chip min-h-[34px] border-line-strong px-3 text-sm">${v === total ? "Exact" : fmt(v)}</button>`).join("");
+    $("payBtn").disabled = cart.size === 0 || (isCash && paid < total);
+    $("cartField").value = JSON.stringify([...cart].map(([product_id, quantity]) => ({ product_id, quantity })));
+    renderGrid();
+  }
+
+  $("grid").addEventListener("click", (e) => { const b = e.target.closest("[data-id]"); if (b) add(Number(b.dataset.id)); });
+  $("cart").addEventListener("click", (e) => {
+    const inc = e.target.closest("[data-inc]"), dec = e.target.closest("[data-dec]");
+    if (inc) add(Number(inc.dataset.inc), 1);
+    if (dec) add(Number(dec.dataset.dec), -1);
+  });
+  $("quick").addEventListener("click", (e) => { const b = e.target.closest("[data-pay]"); if (b) { $("amountPaid").value = b.dataset.pay; render(); } });
+  $("cats").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-cat]"); if (!b) return;
+    cat = b.dataset.cat;
+    for (const c of $("cats").children) {
+      const on = c === b;
+      c.classList.toggle("bg-brand", on); c.classList.toggle("text-white", on); c.classList.toggle("border-brand", on);
+      c.classList.toggle("bg-white", !on); c.classList.toggle("text-ink", !on); c.classList.toggle("border-line-strong", !on);
+    }
+    renderGrid();
+  });
+  $("search").addEventListener("input", renderGrid);
+  $("search").addEventListener("keydown", (e) => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    const q = $("search").value.trim().toLowerCase();
+    const exact = PRODUCTS.find((p) => (p.code || "").toLowerCase() === q);
+    const list = visible();
+    const pick = exact || (list.length === 1 ? list[0] : null);
+    if (pick) { add(pick.id); $("search").value = ""; renderGrid(); }
+  });
+  for (const id of ["discount", "amountPaid"]) $(id).addEventListener("input", render);
+  $("methods").addEventListener("change", render);
+  $("clear").addEventListener("click", () => { cart.clear(); $("amountPaid").value = ""; $("discount").value = 0; render(); });
+  $("checkoutForm").addEventListener("submit", () => { $("payBtn").disabled = true; $("payBtn").textContent = "Saving…"; });
+  render();
+</script>
+{{> footer}}
