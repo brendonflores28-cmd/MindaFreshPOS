@@ -1,19 +1,19 @@
-{{> head}}
+{{> pos-head}}
 {{> nav}}
 <main class="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-6">
   {{> flash}}
-  <a href="/purchases" class="text-sm font-bold text-brand">← Purchase orders</a>
+  <a href="/purchase-orders" class="text-sm font-bold text-brand">← Purchase orders</a>
   <div class="mt-2 flex flex-wrap items-center gap-2">
     <h1 class="mr-auto text-2xl font-extrabold">{{po.purchase_order_code}} <span class="badge align-middle {{badge po.status}}">{{po.status}}</span></h1>
     {{#if (eq po.status 'draft')}}
-      <a href="/purchases/{{po.id}}/edit" class="btn-outline">Edit</a>
-      <form action="/purchases/{{po.id}}/place" method="POST"><button class="btn-primary">Place order</button></form>
+      <a href="/purchase-orders/{{po.id}}/edit" class="btn-outline">Edit</a>
+      <form action="/purchase-orders/{{po.id}}/place" method="POST"><button class="btn-primary">Place order</button></form>
     {{/if}}
     {{#if (eq po.status 'ordered')}}
-      <form action="/purchases/{{po.id}}/receive" method="POST" onsubmit="return confirm('Receive all items? Stock will be added and costs updated.')"><button class="btn-primary">Receive goods</button></form>
+      <form action="/purchase-orders/{{po.id}}/receive" method="POST" data-confirm="Receive all items? Stock will be added and costs updated." data-confirm-button="Receive goods"><button class="btn-primary">Receive goods</button></form>
     {{/if}}
     {{#if (or (eq po.status 'draft') (eq po.status 'ordered'))}}
-      <form action="/purchases/{{po.id}}/cancel" method="POST" onsubmit="return confirm('Cancel this purchase order?')"><button class="btn-danger">Cancel</button></form>
+      <form action="/purchase-orders/{{po.id}}/cancel" method="POST" data-confirm="Cancel this purchase order?" data-confirm-button="Yes, cancel it" data-confirm-danger="1"><button class="btn-danger">Cancel</button></form>
     {{/if}}
   </div>
 
@@ -46,4 +46,4 @@
   </div>
   {{/if}}
 </main>
-{{> footer}}
+{{> pos-footer}}

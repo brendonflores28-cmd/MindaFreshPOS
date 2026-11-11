@@ -36,11 +36,11 @@ export const adjustSave = async (req, res, next) => {
       employee_id: req.session.user.employee_id
     }, t));
     req.flash("success_msg", `${r.movement_code} saved. On hand now: ${r.quantity_after}.`);
-    res.redirect("/inventory");
+    res.redirect("/stock");
   } catch (e) {
     if (e.name !== "AppError") return next(e);
     req.flash("error_msg", e.message);
-    res.redirect(`/inventory/adjust?product_id=${encodeURIComponent(req.body.product_id || "")}`);
+    res.redirect(`/stock/adjust?product_id=${encodeURIComponent(req.body.product_id || "")}`);
   }
 };
 

@@ -1,4 +1,4 @@
-{{> head}}
+{{> pos-head}}
 {{> nav}}
 <main class="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6">
   {{> flash}}
@@ -18,4 +18,4 @@
     {{/each}}
   </div>
 </main>
-{{> footer}}
+{{> pos-footer}}

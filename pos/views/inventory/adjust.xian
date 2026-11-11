@@ -1,11 +1,10 @@
-{{> head}}
+{{> pos-head}}
 {{> nav}}
 <main class="mx-auto w-full max-w-xl flex-1 px-4 py-6 sm:px-6">
   {{> flash}}
-  <a href="/inventory" class="text-sm font-bold text-brand">← Stock levels</a>
+  <a href="/stock" class="text-sm font-bold text-brand">← Stock levels</a>
   <h1 class="mt-2 text-2xl font-extrabold">Adjust stock</h1>
-  <p class="text-ink-muted">For stock counts, spoilage and damage. Every adjustment is logged with its reason; Accounting posts it as a stock adjustment.</p>
-  <form action="/inventory/adjust" method="POST" class="card mt-4 space-y-4 p-6">
+  <form action="/stock/adjust" method="POST" class="card mt-4 space-y-4 p-6">
     <div><label class="label" for="product_id">Product</label>
       <select id="product_id" name="product_id" class="field mt-1" required>
         <option value="">Choose…</option>
@@ -20,4 +19,4 @@
     <button class="btn-primary w-full">Save adjustment</button>
   </form>
 </main>
-{{> footer}}
+{{> pos-footer}}

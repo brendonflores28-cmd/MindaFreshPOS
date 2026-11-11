@@ -1,10 +1,9 @@
-{{> head}}
+{{> pos-head}}
 {{> nav}}
 <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6">
   {{> flash}}
-  <div class="mb-4"><a href="/inventory" class="text-sm font-bold text-brand">← Stock levels</a>
-    <h1 class="mt-2 text-2xl font-extrabold">Stock movements</h1>
-    <p class="text-ink-muted">Every change to stock, from POS sales, Online Shop orders, purchase orders and adjustments (latest 300).</p></div>
+  <div class="mb-4"><a href="/stock" class="text-sm font-bold text-brand">← Stock levels</a>
+    <h1 class="mt-2 text-2xl font-extrabold">Stock movements</h1></div>
   <form method="GET" class="mb-4 flex flex-wrap items-center gap-2">
     <select name="product_id" class="field max-w-xs">
       <option value="">All products</option>
@@ -35,7 +34,7 @@
           <td class="px-4 py-3">
             {{#if Sale.id}}<a class="font-bold text-brand" href="/sales/{{Sale.id}}">{{Sale.sale_code}}</a>{{/if}}
             {{#if Order.order_code}}{{Order.order_code}} <span class="text-sm text-ink-muted">(Shop)</span>{{/if}}
-            {{#if PurchaseOrder.id}}<a class="font-bold text-brand" href="/purchases/{{PurchaseOrder.id}}">{{PurchaseOrder.purchase_order_code}}</a>{{/if}}
+            {{#if PurchaseOrder.id}}<a class="font-bold text-brand" href="/purchase-orders/{{PurchaseOrder.id}}">{{PurchaseOrder.purchase_order_code}}</a>{{/if}}
             {{#if remarks}}<span class="text-sm text-ink-muted">{{remarks}}</span>{{/if}}
           </td>
           <td class="px-4 py-3">{{Employee.first_name}}</td>
@@ -45,4 +44,4 @@
     </table>
   </div>
 </main>
-{{> footer}}
+{{> pos-footer}}

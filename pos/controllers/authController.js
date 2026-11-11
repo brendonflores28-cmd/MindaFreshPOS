@@ -1,13 +1,16 @@
 // pos/controllers/authController.js — staff login through the shared users ⨝ employees (HR).
 // No sequelize.sync() and no local User model: the same account works in every staff module.
+import { isOfflineError, dbTarget } from "../utils/dbStatus.js";
+import { getSettings } from "../utils/settings.js";
 import { login } from "../services/authService.js";
 
 const POS_ROLES = ["admin", "cashier", "inventory_staff"];
-export const homeFor = (role) => (role === "inventory_staff" ? "/inventory" : role === "cashier" ? "/pos" : "/dashboard");
+export const homeFor = () => "/dashboard";
 
 export const loginPage = (req, res) => {
-  if (req.session.user) return res.redirect(homeFor(req.session.user.role));
-  res.render("login", { title: "Staff login" });
+  const offline = req.query.offline === "1";
+  if (req.session.user && !offline) return res.redirect(homeFor(req.session.user.role));
+  res.render("login", { title: "Log in", offline, dbTarget: dbTarget() });
 };
 
 export const loginUser = async (req, res, next) => {
@@ -21,9 +24,11 @@ export const loginUser = async (req, res, next) => {
     req.session.regenerate((err) => {
       if (err) return next(err);
       req.session.user = user;
+      req.session.cookie.maxAge = getSettings().sessionHours * 60 * 60 * 1000;
       req.session.save(() => res.redirect(homeFor(user.role)));
     });
   } catch (e) {
+    if (isOfflineError(e)) return res.redirect("/login?offline=1"); // stay on the form, the page shows a modal
     if (e.code === "INVALID_LOGIN" || e.code === "ACCOUNT_DISABLED") {
       req.flash("error_msg", e.message);
       return res.redirect("/login");

@@ -41,7 +41,7 @@ export const createOrderAction = async (req, res, next) => {
       items: linesFrom(req.body), status: req.body.action === "order" ? "ordered" : "draft", employee_id: req.session.user.employee_id
     });
     req.flash("success_msg", `${po.purchase_order_code} saved as ${po.status}.`);
-    res.redirect(`/purchases/${po.id}`);
+    res.redirect(`/purchase-orders/${po.id}`);
   } catch (e) {
     if (e.name !== "AppError") return next(e);
     res.status(422).render("purchases/form", { title: "New purchase order", po: { ...req.body, items: linesFrom(req.body) }, isNew: true, error_msg: [e.message], ...(await formOptions()) });
@@ -66,8 +66,8 @@ export const showOrder = async (req, res) => {
 
 export const editOrder = async (req, res) => {
   const po = await PurchaseOrder.findByPk(req.params.id, { include: [PurchaseOrderItem] });
-  if (!po) return res.redirect("/purchases");
-  if (po.status !== "draft") { req.flash("error_msg", "Only drafts can be edited."); return res.redirect(`/purchases/${po.id}`); }
+  if (!po) return res.redirect("/purchase-orders");
+  if (po.status !== "draft") { req.flash("error_msg", "Only drafts can be edited."); return res.redirect(`/purchase-orders/${po.id}`); }
   const plain = po.get({ plain: true });
   res.render("purchases/form", {
     title: `Edit ${po.purchase_order_code}`,
@@ -83,7 +83,7 @@ export const updateOrderAction = async (req, res, next) => {
       items: linesFrom(req.body), status: req.body.action === "order" ? "ordered" : "draft"
     });
     req.flash("success_msg", `${po.purchase_order_code} saved as ${po.status}.`);
-    res.redirect(`/purchases/${po.id}`);
+    res.redirect(`/purchase-orders/${po.id}`);
   } catch (e) {
     if (e.name !== "AppError") return next(e);
     const po = await PurchaseOrder.findByPk(req.params.id, { raw: true });
@@ -99,7 +99,7 @@ const transition = (fn, done) => async (req, res, next) => {
     if (e.name !== "AppError") return next(e);
     req.flash("error_msg", e.message);
   }
-  res.redirect(`/purchases/${req.params.id}`);
+  res.redirect(`/purchase-orders/${req.params.id}`);
 };
 
 export const placeOrderAction = transition((req) => placeOrder(req.params.id), (po) => `${po.purchase_order_code} placed with the supplier.`);

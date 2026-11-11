@@ -1,3 +1,5 @@
 node_modules/
 .env
 .vscode/
+pos/data/
+pos/public/uploads/

@@ -1,4 +1,4 @@
-{{> head}}
+{{> pos-head}}
 {{> nav}}
 <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6">
   {{> flash}}
@@ -8,9 +8,9 @@
       <p class="text-ink-muted">Stock value at cost: <strong class="text-ink">{{peso totalValue}}</strong> · {{lowCount}} item(s) at or below reorder level</p>
     </div>
     <div class="flex flex-wrap gap-2">
-      <a href="/inventory/movements" class="btn-outline">Movement history</a>
-      <a href="/inventory/adjust" class="btn-outline">Adjust stock</a>
-      <a href="/purchases/new?low=1" class="btn-primary">Restock low items</a>
+      <a href="/stock/movements" class="btn-outline">Movement history</a>
+      <a href="/stock/adjust" class="btn-outline">Adjust stock</a>
+      <a href="/purchase-orders/new?low=1" class="btn-primary">Restock low items</a>
     </div>
   </div>
   <form method="GET" class="mb-4 flex flex-wrap items-center gap-2">
@@ -36,8 +36,8 @@
           <td class="px-4 py-3 text-right">{{peso cost_price}}</td>
           <td class="px-4 py-3 text-right">{{peso value}}</td>
           <td class="px-4 py-3 text-right whitespace-nowrap">
-            <a href="/inventory/adjust?product_id={{id}}" class="text-sm font-bold text-brand">Adjust</a> ·
-            <a href="/inventory/movements?product_id={{id}}" class="text-sm font-bold text-brand">History</a>
+            <a href="/stock/adjust?product_id={{id}}" class="text-sm font-bold text-brand">Adjust</a> ·
+            <a href="/stock/movements?product_id={{id}}" class="text-sm font-bold text-brand">History</a>
           </td>
         </tr>
         {{else}}<tr><td colspan="8" class="px-4 py-8 text-center text-ink-muted">No products found.</td></tr>{{/each}}
@@ -46,4 +46,4 @@
   </div>
   {{/if}}
 </main>
-{{> footer}}
+{{> pos-footer}}

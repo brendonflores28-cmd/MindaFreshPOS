@@ -1,14 +1,14 @@
-{{> head}}
+{{> pos-head}}
 {{> nav}}
 <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6">
   {{> flash}}
   <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
     <h1 class="text-2xl font-extrabold">Purchase orders</h1>
-    <div class="flex gap-2"><a href="/purchases/new?low=1" class="btn-outline">Restock low items</a><a href="/purchases/new" class="btn-primary">New purchase order</a></div>
+    <div class="flex gap-2"><a href="/purchase-orders/new?low=1" class="btn-outline">Restock low items</a><a href="/purchase-orders/new" class="btn-primary">New purchase order</a></div>
   </div>
   <div class="mb-4 flex flex-wrap gap-2">
-    <a href="/purchases" class="chip {{#if (eq status '')}}border-brand bg-brand text-white{{else}}border-line-strong bg-white{{/if}}">All</a>
-    {{#each statuses}}<a href="/purchases?status={{this}}" class="chip {{#if (eq this ../status)}}border-brand bg-brand text-white{{else}}border-line-strong bg-white{{/if}}">{{this}}</a>{{/each}}
+    <a href="/purchase-orders" class="chip {{#if (eq status '')}}border-brand bg-brand text-white{{else}}border-line-strong bg-white{{/if}}">All</a>
+    {{#each statuses}}<a href="/purchase-orders?status={{this}}" class="chip {{#if (eq this ../status)}}border-brand bg-brand text-white{{else}}border-line-strong bg-white{{/if}}">{{this}}</a>{{/each}}
   </div>
   <div class="card overflow-x-auto">
     <table class="w-full text-left text-[15px]">
@@ -18,7 +18,7 @@
       <tbody class="divide-y divide-line">
         {{#each orders}}
         <tr class="hover:bg-peach-soft">
-          <td class="px-4 py-3 font-bold"><a class="text-brand" href="/purchases/{{id}}">{{purchase_order_code}}</a></td>
+          <td class="px-4 py-3 font-bold"><a class="text-brand" href="/purchase-orders/{{id}}">{{purchase_order_code}}</a></td>
           <td class="px-4 py-3">{{Supplier.name}}</td>
           <td class="px-4 py-3">{{order_date}}</td>
           <td class="px-4 py-3">{{expected_date}}</td>
@@ -31,4 +31,4 @@
     </table>
   </div>
 </main>
-{{> footer}}
+{{> pos-footer}}

@@ -1,9 +1,9 @@
-{{> head}}
+{{> pos-head}}
 {{> nav}}
 <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6">
   {{> flash}}
   <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
-    <div><h1 class="text-2xl font-extrabold">Products and prices</h1><p class="text-ink-muted">The Online Shop shows active products with “Online” on.</p></div>
+    <div><h1 class="text-2xl font-extrabold">Products and prices</h1></div>
     <a href="/products/new" class="btn-primary">Add product</a>
   </div>
   <form method="GET" class="mb-4 flex flex-wrap items-end gap-2">
@@ -29,7 +29,7 @@
         {{#each products}}
         <tr>
           <td class="px-4 py-3 font-bold">{{product_code}}</td>
-          <td class="px-4 py-3">{{name}} <span class="text-sm text-ink-muted">/ {{unit}}</span></td>
+          <td class="px-4 py-3"><span class="flex items-center gap-3">{{#if image_url}}<img src="{{image_url}}" alt="" class="h-10 w-10 rounded-lg border border-line object-cover">{{else}}<span class="h-10 w-10 rounded-lg border border-line bg-peach-soft"></span>{{/if}}<span>{{name}} <span class="text-sm text-ink-muted">/ {{unit}}</span></span></span></td>
           <td class="px-4 py-3">{{Category.name}}</td>
           <td class="px-4 py-3 text-right">{{peso cost_price}}</td>
           <td class="px-4 py-3 text-right font-bold">{{peso selling_price}}</td>
@@ -48,4 +48,4 @@
     </table>
   </div>
 </main>
-{{> footer}}
+{{> pos-footer}}

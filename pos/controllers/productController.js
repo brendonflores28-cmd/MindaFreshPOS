@@ -5,10 +5,15 @@ import { sequelize, Product, Category, StockLevel } from "../models/index.js";
 import { openStock } from "../services/stockService.js";
 import { AppError } from "../utils/appError.js";
 import { round2 } from "../utils/money.js";
+import { removeUpload } from "../utils/upload.js";
+import { ensureBarcode } from "../utils/barcode.js";
+
+// An optional internet link for the photo. Only https links are accepted.
+const imageLink = (v) => { const t = String(v || "").trim(); return /^https:\/\/[^\s]{4,240}$/.test(t) ? t : null; };
 
 const UNITS = ["pc", "kg", "pack", "box", "tray"];
 
-function readProduct(body) {
+function readProduct(body, hasBarcode = false) {
   const data = {
     name: String(body.name || "").trim(),
     description: String(body.description || "").trim() || null,
@@ -17,9 +22,9 @@ function readProduct(body) {
     cost_price: round2(body.cost_price),
     selling_price: round2(body.selling_price),
     reorder_level: Number(body.reorder_level),
-    is_online: body.is_online === "1" || body.is_online === "on",
-    image_url: String(body.image_url || "").trim() || null
+    is_online: body.is_online === "1" || body.is_online === "on"
   };
+  if (hasBarcode) data.barcode = String(body.barcode || "").trim().slice(0, 50) || null;
   if (!data.name) throw new AppError("VALIDATION_ERROR", "Enter the product name.");
   if (!UNITS.includes(data.unit)) throw new AppError("VALIDATION_ERROR", "Choose a unit.");
   if (!(data.cost_price >= 0) || !(data.selling_price >= 0)) throw new AppError("VALIDATION_ERROR", "Prices must be ₱0.00 or more.");
@@ -44,16 +49,18 @@ export const listProducts = async (req, res) => {
 };
 
 export const newProduct = async (req, res) => {
-  res.render("products/form", { title: "New product", product: { unit: "pc", reorder_level: 10, is_online: true }, categories: await categoryOptions(), units: UNITS, isNew: true });
+  const hasBarcode = await ensureBarcode();
+  res.render("products/form", { hasBarcode, title: "New product", product: { unit: res.locals.cfg.defaultUnit, reorder_level: res.locals.cfg.defaultReorder, is_online: false }, categories: await categoryOptions(), units: UNITS, isNew: true });
 };
 
 export const createProduct = async (req, res, next) => {
   try {
-    const data = readProduct(req.body);
+    const hasBarcode = await ensureBarcode();
+    const data = readProduct(req.body, hasBarcode);
     const opening = Number(req.body.opening_stock || 0);
     const product = await sequelize.transaction(async (t) => {
       if (!(await Category.findByPk(data.category_id, { transaction: t }))) throw new AppError("VALIDATION_ERROR", "Choose a category.");
-      const p = await Product.create({ ...data, status: "active" }, { transaction: t });
+      const p = await Product.create({ ...data, image_url: req.uploadedImageUrl || imageLink(req.body.image_link) || null, status: "active" }, { transaction: t });
       await openStock({ product_id: p.id, quantity: opening, employee_id: req.session.user.employee_id }, t);
       return p;
     });
@@ -61,28 +68,35 @@ export const createProduct = async (req, res, next) => {
     res.redirect("/products");
   } catch (e) {
     if (e.name !== "AppError") return next(e);
-    res.status(422).render("products/form", { title: "New product", product: { ...req.body, is_online: req.body.is_online === "1" }, categories: await categoryOptions(), units: UNITS, isNew: true, error_msg: [e.message] });
+    res.status(422).render("products/form", { hasBarcode: await ensureBarcode(), title: "New product", product: { ...req.body, is_online: req.body.is_online === "1" }, categories: await categoryOptions(), units: UNITS, isNew: true, error_msg: [e.message] });
   }
 };
 
 export const editProduct = async (req, res) => {
+  const hasBarcode = await ensureBarcode();
   const product = await Product.findByPk(req.params.id, { raw: true });
   if (!product) return res.redirect("/products");
-  res.render("products/form", { title: `Edit ${product.product_code}`, product, categories: await categoryOptions(), units: UNITS });
+  res.render("products/form", { hasBarcode, title: `Edit ${product.product_code}`, product, categories: await categoryOptions(), units: UNITS });
 };
 
 export const updateProduct = async (req, res, next) => {
   const product = await Product.findByPk(req.params.id);
   if (!product) return res.redirect("/products");
   try {
-    const data = readProduct(req.body);
+    const hasBarcode = await ensureBarcode();
+    const data = readProduct(req.body, hasBarcode);
     if (!(await Category.findByPk(data.category_id))) throw new AppError("VALIDATION_ERROR", "Choose a category.");
+    const old = product.image_url;
+    if (req.uploadedImageUrl) data.image_url = req.uploadedImageUrl;
+    else if (imageLink(req.body.image_link)) data.image_url = imageLink(req.body.image_link);
+    else if (req.body.remove_image === "1") data.image_url = null;
     await product.update(data);
+    if (data.image_url !== undefined && data.image_url !== old) removeUpload(old);
     req.flash("success_msg", `${product.product_code} saved.`);
     res.redirect("/products");
   } catch (e) {
     if (e.name !== "AppError") return next(e);
-    res.status(422).render("products/form", { title: `Edit ${product.product_code}`, product: { ...req.body, id: product.id, product_code: product.product_code, is_online: req.body.is_online === "1" }, categories: await categoryOptions(), units: UNITS, error_msg: [e.message] });
+    res.status(422).render("products/form", { hasBarcode: await ensureBarcode(), title: `Edit ${product.product_code}`, product: { ...req.body, id: product.id, product_code: product.product_code, is_online: req.body.is_online === "1" }, categories: await categoryOptions(), units: UNITS, error_msg: [e.message] });
   }
 };
 

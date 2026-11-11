@@ -2,7 +2,7 @@
 // Commit the built public/css/app.css, so POS looks right even with no internet.
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ["./views/**/*.xian"],
+  content: ["./views/**/*.xian", "./helpers/**/*.js"],
   theme: {
     extend: {
       colors: {
